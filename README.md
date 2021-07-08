@@ -6,5 +6,5 @@ until I fully understand the concept.
 These are my resource where you can take a look too:
 
 - [Writing Interpreters and Compilers for the Raspberry Pi Using Python by Anthony J. Dos Reis](https://amz.run/4ipU)
-- [Compiler/virtual machine interpreter by RosettaCode] (http://rosettacode.org/wiki/Compiler/virtual_machine_interpreter)
+- [Compiler/virtual machine interpreter by RosettaCode](http://rosettacode.org/wiki/Compiler/virtual_machine_interpreter)
 - [Writing A Compiler In Go by Thorsten Ball](https://amz.run/4ipX)
