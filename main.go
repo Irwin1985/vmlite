@@ -6,6 +6,7 @@ import (
 	"os"
 	"time"
 	"vmlite/ast"
+	"vmlite/compiler"
 	"vmlite/lexer"
 	"vmlite/parser"
 )
@@ -18,7 +19,7 @@ const BUG_ERROR = `
 /'..''..'\
 `
 const PROMPT = `
-__                     
+ __                     
 [  |                    
  | |_   __ _ .--..--.   
  | [ \ [  |  .-. .-. |  
@@ -29,9 +30,11 @@ __
 func main() {
 	repl()
 	//debugParser()
+	//debugCompiler()
 }
 
 func repl() {
+	co_consts := []interface{}{}
 	fmt.Printf("%s\n", PROMPT)
 	fmt.Print("Welcome to lvm (Little virtual machine)\n")
 	fmt.Printf("Date and time %v\n", time.Now().Format(time.ANSIC))
@@ -50,8 +53,12 @@ func repl() {
 		if len(p.Errors()) > 0 {
 			printParseErrors(p.Errors())
 		}
-		o := ast.NewAstPrinter()
-		fmt.Printf("%s\n", o.Print(expr))
+		c := compiler.NewCompiler(co_consts)
+		c.Compile(expr)
+		codes := c.GetCodes()
+		co_consts = c.GetConstants()
+		output := compiler.PrintByteCode(codes, co_consts)
+		fmt.Println(output)
 	}
 }
 
@@ -65,6 +72,24 @@ func debugParser() {
 	}
 	o := ast.NewAstPrinter()
 	fmt.Printf("%s\n", o.Print(expr))
+}
+
+func debugCompiler() {
+	co_consts := []interface{}{}
+	input := `(1 + 2) * 3`
+	l := lexer.NewLexer(input)
+	p := parser.NewParser(l)
+	expr := p.Parse()
+	if len(p.Errors()) > 0 {
+		printParseErrors(p.Errors())
+		return
+	}
+	c := compiler.NewCompiler(co_consts)
+	c.Compile(expr)
+	codes := c.GetCodes()
+	co_consts = c.GetConstants()
+	output := compiler.PrintByteCode(codes, co_consts)
+	fmt.Println(output)
 }
 
 func printParseErrors(errors []string) {
