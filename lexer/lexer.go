@@ -2,6 +2,7 @@ package lexer
 
 import (
 	"fmt"
+	"strconv"
 	"unicode"
 	"vmlite/token"
 )
@@ -55,7 +56,12 @@ func (l *Lexer) getNum() token.Token {
 	for !l.isAtEnd() && unicode.IsNumber(l.c) {
 		l.consume()
 	}
-	return token.Token{Ln: ln, Col: col, Type: token.NUMBER, Lexeme: string(l.input[pos:l.pos])}
+	lex := string(l.input[pos:l.pos])
+	v, ok := strconv.ParseFloat(lex, 64)
+	if ok != nil {
+		panic(ok)
+	}
+	return token.NewToken(ln, col, token.NUMBER, v)
 }
 
 func (l *Lexer) NextToken() token.Token {
@@ -70,11 +76,11 @@ func (l *Lexer) NextToken() token.Token {
 		if tok, ok := token.IsSymbol(string(l.c)); ok {
 			c := string(l.c)
 			l.consume()
-			return token.Token{Ln: l.ln, Col: l.col, Type: tok, Lexeme: c}
+			return token.NewToken(l.ln, l.col, tok, c)
 		}
 		panic(fmt.Sprintf("unknown character '%c' at Ln: %d, Col: %d", l.c, l.ln, l.col))
 	}
-	return token.Token{Ln: l.ln, Col: l.col, Type: token.EOF, Lexeme: ""}
+	return token.NewToken(l.ln, l.col, token.EOF, "")
 }
 
 func (l *Lexer) isAtEnd() bool {
