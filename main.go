@@ -9,6 +9,7 @@ import (
 	"vmlite/compiler"
 	"vmlite/lexer"
 	"vmlite/parser"
+	"vmlite/vm"
 )
 
 const BUG_ERROR = `
@@ -31,6 +32,7 @@ func main() {
 	repl()
 	//debugParser()
 	//debugCompiler()
+	//debugVM()
 }
 
 func repl() {
@@ -47,6 +49,12 @@ func repl() {
 			break
 		}
 		input := scanner.Text()
+		if len(input) == 0 {
+			continue
+		}
+		if input == "quit" {
+			break
+		}
 		l := lexer.NewLexer(input)
 		p := parser.NewParser(l)
 		expr := p.Parse()
@@ -55,10 +63,15 @@ func repl() {
 		}
 		c := compiler.NewCompiler(co_consts)
 		c.Compile(expr)
-		codes := c.GetCodes()
+		co_codes := c.GetCodes()
 		co_consts = c.GetConstants()
-		output := compiler.PrintByteCode(codes, co_consts)
-		fmt.Println(output)
+		vm := vm.NewVM(co_codes, co_consts)
+		err := vm.Run()
+		if err != nil {
+			panic(err)
+		}
+		tos := vm.TOS()
+		fmt.Printf("%v\n", tos)
 	}
 }
 
@@ -86,10 +99,38 @@ func debugCompiler() {
 	}
 	c := compiler.NewCompiler(co_consts)
 	c.Compile(expr)
-	codes := c.GetCodes()
+	co_codes := c.GetCodes()
 	co_consts = c.GetConstants()
-	output := compiler.PrintByteCode(codes, co_consts)
-	fmt.Println(output)
+	vm := vm.NewVM(co_codes, co_consts)
+	err := vm.Run()
+	if err != nil {
+		panic(err)
+	}
+	tos := vm.TOS()
+	fmt.Printf("%v\n", tos)
+}
+
+func debugVM() {
+	co_consts := []interface{}{}
+	input := `(1 + 2) * 3`
+	l := lexer.NewLexer(input)
+	p := parser.NewParser(l)
+	expr := p.Parse()
+	if len(p.Errors()) > 0 {
+		printParseErrors(p.Errors())
+		return
+	}
+	c := compiler.NewCompiler(co_consts)
+	c.Compile(expr)
+	co_codes := c.GetCodes()
+	co_consts = c.GetConstants()
+	vm := vm.NewVM(co_codes, co_consts)
+	err := vm.Run()
+	if err != nil {
+		panic(err)
+	}
+	tos := vm.TOS()
+	fmt.Printf("%v\n", tos)
 }
 
 func printParseErrors(errors []string) {
