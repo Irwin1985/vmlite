@@ -78,9 +78,12 @@ func (c *Compiler) evaluateExpr(expr ast.Expr) interface{} {
 
 func (c *Compiler) VisitUnaryExpr(expr *ast.Unary) interface{} {
 	c.evaluateExpr(expr.Right)
+	c.emit(code.UNARY)
 	switch expr.Operator.Type {
 	case token.MINUS:
 		c.emit(code.UNEG)
+	case token.NOT:
+		c.emit(code.NOT)
 	}
 	return nil
 }
@@ -88,6 +91,7 @@ func (c *Compiler) VisitUnaryExpr(expr *ast.Unary) interface{} {
 func (c *Compiler) VisitBinaryExpr(expr *ast.Binary) interface{} {
 	c.evaluateExpr(expr.Left)
 	c.evaluateExpr(expr.Right)
+	c.emit(code.CMP) // COMPARE
 	switch expr.Operator.Type {
 	case token.PLUS:
 		c.emit(code.ADD)
@@ -97,7 +101,22 @@ func (c *Compiler) VisitBinaryExpr(expr *ast.Binary) interface{} {
 		c.emit(code.MUL)
 	case token.DIV:
 		c.emit(code.DIV)
-
+	case token.LT:
+		c.emit(code.LT)
+	case token.GT:
+		c.emit(code.GT)
+	case token.LEQ:
+		c.emit(code.LEQ)
+	case token.GEQ:
+		c.emit(code.GEQ)
+	case token.EQ:
+		c.emit(code.EQ)
+	case token.NEQ:
+		c.emit(code.NEQ)
+	case token.AND:
+		c.emit(code.AND)
+	case token.OR:
+		c.emit(code.OR)
 	}
 	return nil
 }
@@ -109,6 +128,13 @@ func (c *Compiler) VisitLiteralExpr(expr *ast.Literal) interface{} {
 		i := c.addConstant(v)
 		// emit the instruction
 		c.emit(code.PUSH, i)
+	case bool:
+		c.emit(code.BOOL)
+		if v {
+			c.emit(code.TRUE)
+		} else {
+			c.emit(code.FALSE)
+		}
 	}
 	return nil
 }

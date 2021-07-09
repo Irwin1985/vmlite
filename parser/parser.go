@@ -10,17 +10,36 @@ import (
 // precedence order
 const (
 	LOWEST int = iota
+	LOGIC_OR
+	LOGIC_AND
+	EQUALITY
+	COMPARISON
 	TERM
 	FACTOR
 	PREFIX
+	CALL
+	INDEX
 )
 
 // precedence map
 var mapPrecedence = map[token.TokenType]int{
+	// logical operators
+	token.OR:  LOGIC_OR,
+	token.AND: LOGIC_AND,
+	// equality
+	token.EQ:  EQUALITY,
+	token.NEQ: EQUALITY,
+	// comparison
+	token.LT:  COMPARISON,
+	token.GT:  COMPARISON,
+	token.LEQ: COMPARISON,
+	token.GEQ: COMPARISON,
+	// term
 	token.PLUS:  TERM,
 	token.MINUS: TERM,
-	token.MUL:   FACTOR,
-	token.DIV:   FACTOR,
+	// factor
+	token.MUL: FACTOR,
+	token.DIV: FACTOR,
 }
 
 // semantic function types
@@ -46,14 +65,27 @@ func NewParser(l *lexer.Lexer) *Parser {
 	}
 	// register PREFIX semantic code
 	p.registerPrefixFn(token.NUMBER, p.parseNumberLiteral)
-	p.registerPrefixFn(token.LPAREN, p.parseGroupedExpr)
-	p.registerPrefixFn(token.MINUS, p.parsePrefixExpr)
 	p.registerPrefixFn(token.IDENT, p.parseIdentifier)
+	p.registerPrefixFn(token.LPAREN, p.parseGroupedExpr)
+	p.registerPrefixFn(token.MINUS, p.parseUnaryExpr)
+	p.registerPrefixFn(token.NOT, p.parseUnaryExpr)
+	p.registerPrefixFn(token.TRUE, p.parseBooleanExpr)
+	p.registerPrefixFn(token.FALSE, p.parseBooleanExpr)
+
 	// register INFIX semantic code
 	p.registerInfixFn(token.PLUS, p.parseInfixExpr)
 	p.registerInfixFn(token.MINUS, p.parseInfixExpr)
 	p.registerInfixFn(token.MUL, p.parseInfixExpr)
 	p.registerInfixFn(token.DIV, p.parseInfixExpr)
+	p.registerInfixFn(token.OR, p.parseInfixExpr)
+	p.registerInfixFn(token.AND, p.parseInfixExpr)
+	p.registerInfixFn(token.LT, p.parseInfixExpr)
+	p.registerInfixFn(token.GT, p.parseInfixExpr)
+	p.registerInfixFn(token.LEQ, p.parseInfixExpr)
+	p.registerInfixFn(token.GEQ, p.parseInfixExpr)
+	p.registerInfixFn(token.EQ, p.parseInfixExpr)
+	p.registerInfixFn(token.NEQ, p.parseInfixExpr)
+
 	// move tokens
 	p.nextToken()
 	p.nextToken()
@@ -162,11 +194,17 @@ func (p *Parser) parseGroupedExpr() ast.Expr {
 	return exp
 }
 
-func (p *Parser) parsePrefixExpr() ast.Expr {
+func (p *Parser) parseUnaryExpr() ast.Expr {
 	expr := &ast.Unary{Operator: p.curToken}
 	p.nextToken()
 	expr.Right = p.expression(PREFIX)
 
+	return expr
+}
+
+func (p *Parser) parseBooleanExpr() ast.Expr {
+	expr := &ast.Literal{Value: p.curToken.Type == token.TRUE}
+	p.nextToken()
 	return expr
 }
 
@@ -203,6 +241,10 @@ func (p *Parser) match(t token.TokenType) bool {
 		return true
 	}
 	return false
+}
+
+func (p *Parser) curTokenIs(t token.TokenType) bool {
+	return p.curToken.Type == t
 }
 
 func (p *Parser) newError(msg string) {

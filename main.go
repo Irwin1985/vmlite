@@ -4,6 +4,6 @@ import "vmlite/repl"
 
 func main() {
 	mode := "repl"
-	input := `5 + 5 * 3 * 3 * 4`
+	input := `!true and !false`
 	repl.Start(mode, input)
 }

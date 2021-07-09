@@ -93,7 +93,7 @@ func run(input string) {
 	co_consts = c.GetConstants()
 
 	// debug
-	fmt.Printf("co_names[%v]\nco_consts[%v]\n", co_names, co_consts)
+	//fmt.Printf("co_names[%v]\nco_consts[%v]\n", co_names, co_consts)
 	// debug
 
 	vm := vm.NewVM(co_codes, co_consts, co_names, co_values)

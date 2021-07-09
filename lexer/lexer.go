@@ -64,6 +64,26 @@ func (l *Lexer) getNum() token.Token {
 	return token.NewToken(ln, col, token.NUMBER, v)
 }
 
+func (l *Lexer) getString() token.Token {
+	s := l.c
+	pos := l.pos
+	ln := l.ln
+	col := l.col
+	l.consume() // skip start string
+	for {
+		if l.isAtEnd() {
+			panic(fmt.Sprintf("untermitated string at Ln: %d, Col: %d", ln, col))
+		}
+		if l.c == s {
+			break
+		}
+	}
+	lex := string(l.input[pos:l.pos])
+	l.consume() // skip ending string delimiter
+
+	return token.NewToken(ln, col, token.STRING, lex)
+}
+
 func (l *Lexer) getIdent() token.Token {
 	pos := l.pos
 	ln := l.ln
@@ -84,13 +104,23 @@ func (l *Lexer) NextToken() token.Token {
 		if unicode.IsNumber(l.c) {
 			return l.getNum()
 		}
+		if l.c == '"' || l.c == '\'' {
+			return l.getString()
+		}
 		if l.isIdent(l.c) {
 			return l.getIdent()
 		}
 		if tok, ok := token.IsSymbol(string(l.c)); ok {
-			c := string(l.c)
+			s1 := string(l.c)
+			ln := l.ln
+			col := l.col
 			l.consume()
-			return token.NewToken(l.ln, l.col, tok, c)
+			s2 := s1 + string(l.c)
+			if tok, ok := token.IsSymbol(s2); ok {
+				l.consume()
+				return token.NewToken(ln, col, tok, s2)
+			}
+			return token.NewToken(ln, col, tok, s1)
 		}
 		panic(fmt.Sprintf("unknown character '%c' at Ln: %d, Col: %d", l.c, l.ln, l.col))
 	}

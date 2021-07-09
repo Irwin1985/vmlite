@@ -11,6 +11,24 @@ const (
 	MUL
 	DIV
 	UNEG
+	NOT
+
+	UNARY
+	CMP
+
+	EQ
+	NEQ
+	LT
+	LEQ
+	GT
+	GEQ
+	AND
+	OR
+
+	BOOL
+	TRUE
+	FALSE
+
 	STORE
 	LOAD
 	PRINT
@@ -23,6 +41,20 @@ var CodeMap = map[Opcode]string{
 	MUL:   "MUL",
 	DIV:   "DIV",
 	UNEG:  "UNEG",
+	NOT:   "NOT",
+	UNARY: "UNARY",
+	CMP:   "CMP",
+	EQ:    "EQ",
+	NEQ:   "NEQ",
+	LT:    "LT",
+	LEQ:   "LEQ",
+	GT:    "GT",
+	GEQ:   "GEQ",
+	AND:   "AND",
+	OR:    "OR",
+	BOOL:  "BOOL",
+	TRUE:  "TRUE",
+	FALSE: "FALSE",
 	STORE: "STORE",
 	LOAD:  "LOAD",
 	PRINT: "PRINT",

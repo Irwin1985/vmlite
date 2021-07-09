@@ -7,46 +7,87 @@ type TokenType uint
 const (
 	IDENT TokenType = iota
 	NUMBER
+	STRING
+
+	// single characters
 	PLUS
 	MINUS
 	MUL
 	DIV
 	LPAREN
 	RPAREN
-	VAR
 	ASSIGN
+
+	// comparison
+	LT
+	GT
+	LEQ
+	GEQ
+	EQ
+	NOT
+	NEQ
+
+	// keywords
+	VAR
 	PRINT
+	TRUE
+	FALSE
+	AND
+	OR
 	EOF
 )
 
 var tokenNames = []string{
 	"IDENT",
 	"NUMBER",
+	"STRING",
 	"PLUS",
 	"MINUS",
 	"MUL",
 	"DIV",
 	"LPAREN",
 	"RPAREN",
-	"VAR",
 	"ASSIGN",
+	"LT",
+	"GT",
+	"LEQ",
+	"GEQ",
+	"EQ",
+	"NOT",
+	"NEQ",
+	"VAR",
 	"PRINT",
+	"TRUE",
+	"FALSE",
+	"AND",
+	"OR",
 	"EOF",
 }
 
 var symbolMap = map[string]TokenType{
-	"+": PLUS,
-	"-": MINUS,
-	"*": MUL,
-	"/": DIV,
-	"(": LPAREN,
-	")": RPAREN,
-	"=": ASSIGN,
+	"+":  PLUS,
+	"-":  MINUS,
+	"*":  MUL,
+	"/":  DIV,
+	"(":  LPAREN,
+	")":  RPAREN,
+	"=":  ASSIGN,
+	"<":  LT,
+	">":  GT,
+	"<=": LEQ,
+	">=": GEQ,
+	"==": EQ,
+	"!":  NOT,
+	"!=": NEQ,
 }
 
 var keywords = map[string]TokenType{
 	"var":   VAR,
 	"print": PRINT,
+	"true":  TRUE,
+	"false": FALSE,
+	"and":   AND,
+	"or":    OR,
 }
 
 type Token struct {
