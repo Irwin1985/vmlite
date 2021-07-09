@@ -2,21 +2,22 @@ package ast
 
 import "vmlite/token"
 
-type ExprVisitor interface {
+type VisitorExpr interface {
 	VisitLiteralExpr(expr *Literal) interface{}
 	VisitUnaryExpr(expr *Unary) interface{}
 	VisitBinaryExpr(expr *Binary) interface{}
+	VisitIdentifierExpr(expr *Identifier) interface{}
 }
 
 type Expr interface {
-	Accept(v ExprVisitor) interface{}
+	Accept(v VisitorExpr) interface{}
 }
 
 type Literal struct {
 	Value interface{}
 }
 
-func (expr *Literal) Accept(v ExprVisitor) interface{} {
+func (expr *Literal) Accept(v VisitorExpr) interface{} {
 	return v.VisitLiteralExpr(expr)
 }
 
@@ -25,7 +26,7 @@ type Unary struct {
 	Right    Expr
 }
 
-func (expr *Unary) Accept(v ExprVisitor) interface{} {
+func (expr *Unary) Accept(v VisitorExpr) interface{} {
 	return v.VisitUnaryExpr(expr)
 }
 
@@ -35,6 +36,14 @@ type Binary struct {
 	Right    Expr
 }
 
-func (expr *Binary) Accept(v ExprVisitor) interface{} {
+func (expr *Binary) Accept(v VisitorExpr) interface{} {
 	return v.VisitBinaryExpr(expr)
+}
+
+type Identifier struct {
+	Value token.Token
+}
+
+func (expr *Identifier) Accept(v VisitorExpr) interface{} {
+	return v.VisitIdentifierExpr(expr)
 }

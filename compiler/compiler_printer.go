@@ -33,6 +33,13 @@ func PrintByteCode(bc []code.Opcode, co_consts []interface{}) string {
 			out.WriteString(fmt.Sprintf("%d\t%v\n", count, code.CodeMap[c]))
 		case code.DIV:
 			out.WriteString(fmt.Sprintf("%d\t%v\n", count, code.CodeMap[c]))
+		case code.STORE:
+			i := binary.BigEndian.Uint32(bc[ip+1:])
+			ip += 4
+			v := co_consts[i]
+			out.WriteString(fmt.Sprintf("%d\t%v\t%v\n", count, code.CodeMap[c], v))
+		case code.PRINT:
+			out.WriteString(fmt.Sprintf("%d\t%v\n", count, code.CodeMap[c]))
 		}
 	}
 	return out.String()

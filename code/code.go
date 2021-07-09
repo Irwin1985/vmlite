@@ -11,15 +11,21 @@ const (
 	MUL
 	DIV
 	UNEG
+	STORE
+	LOAD
+	PRINT
 )
 
 var CodeMap = map[Opcode]string{
-	PUSH: "PUSH",
-	ADD:  "ADD",
-	SUB:  "SUB",
-	MUL:  "MUL",
-	DIV:  "DIV",
-	UNEG: "UNEG",
+	PUSH:  "PUSH",
+	ADD:   "ADD",
+	SUB:   "SUB",
+	MUL:   "MUL",
+	DIV:   "DIV",
+	UNEG:  "UNEG",
+	STORE: "STORE",
+	LOAD:  "LOAD",
+	PRINT: "PRINT",
 }
 
 func Make(op Opcode, args ...int) []byte {

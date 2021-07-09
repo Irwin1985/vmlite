@@ -5,17 +5,22 @@ import "fmt"
 type TokenType uint
 
 const (
-	NUMBER TokenType = iota
+	IDENT TokenType = iota
+	NUMBER
 	PLUS
 	MINUS
 	MUL
 	DIV
 	LPAREN
 	RPAREN
+	VAR
+	ASSIGN
+	PRINT
 	EOF
 )
 
 var tokenNames = []string{
+	"IDENT",
 	"NUMBER",
 	"PLUS",
 	"MINUS",
@@ -23,6 +28,9 @@ var tokenNames = []string{
 	"DIV",
 	"LPAREN",
 	"RPAREN",
+	"VAR",
+	"ASSIGN",
+	"PRINT",
 	"EOF",
 }
 
@@ -33,6 +41,12 @@ var symbolMap = map[string]TokenType{
 	"/": DIV,
 	"(": LPAREN,
 	")": RPAREN,
+	"=": ASSIGN,
+}
+
+var keywords = map[string]TokenType{
+	"var":   VAR,
+	"print": PRINT,
 }
 
 type Token struct {
@@ -51,6 +65,13 @@ func IsSymbol(k string) (TokenType, bool) {
 		return v, ok
 	}
 	return EOF, false
+}
+
+func GetKeywordOrIdent(ident string) TokenType {
+	if t, ok := keywords[ident]; ok {
+		return t
+	}
+	return IDENT
 }
 
 func NewToken(ln int, col int, t TokenType, v interface{}) Token {

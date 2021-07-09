@@ -48,6 +48,7 @@ func NewParser(l *lexer.Lexer) *Parser {
 	p.registerPrefixFn(token.NUMBER, p.parseNumberLiteral)
 	p.registerPrefixFn(token.LPAREN, p.parseGroupedExpr)
 	p.registerPrefixFn(token.MINUS, p.parsePrefixExpr)
+	p.registerPrefixFn(token.IDENT, p.parseIdentifier)
 	// register INFIX semantic code
 	p.registerInfixFn(token.PLUS, p.parseInfixExpr)
 	p.registerInfixFn(token.MINUS, p.parseInfixExpr)
@@ -83,8 +84,47 @@ func (p *Parser) nextToken() {
 	p.peekToken = p.l.NextToken()
 }
 
-func (p *Parser) Parse() ast.Expr {
-	return p.expression(LOWEST)
+func (p *Parser) Program() []ast.Stmt {
+	stmt := []ast.Stmt{}
+	for !p.match(token.EOF) {
+		stmt = append(stmt, p.statement())
+	}
+	return stmt
+}
+
+func (p *Parser) statement() ast.Stmt {
+	if p.match(token.VAR) {
+		return p.varStatement()
+	} else if p.match(token.PRINT) {
+		return p.printStmt()
+	} else {
+		return p.exprStmt()
+	}
+}
+
+func (p *Parser) varStatement() ast.Stmt {
+	stmt := &ast.VarStmt{}
+	p.expect(token.IDENT, "expect IDENTIFIER after 'var' declaration.")
+	stmt.Name = p.prevToken
+
+	p.expect(token.ASSIGN, "expect '=' before expression.")
+	stmt.Value = p.expression(LOWEST)
+
+	return stmt
+}
+
+func (p *Parser) printStmt() ast.Stmt {
+	stmt := &ast.PrintStmt{}
+	stmt.Value = p.expression(LOWEST)
+
+	return stmt
+}
+
+func (p *Parser) exprStmt() ast.Stmt {
+	stmt := &ast.ExprStmt{}
+	stmt.Expression = p.expression(LOWEST)
+
+	return stmt
 }
 
 func (p *Parser) expression(precedence int) ast.Expr {
@@ -128,6 +168,13 @@ func (p *Parser) parsePrefixExpr() ast.Expr {
 	expr.Right = p.expression(PREFIX)
 
 	return expr
+}
+
+func (p *Parser) parseIdentifier() ast.Expr {
+	exp := &ast.Identifier{Value: p.curToken}
+	p.nextToken()
+
+	return exp
 }
 
 func (p *Parser) parseInfixExpr(left ast.Expr) ast.Expr {

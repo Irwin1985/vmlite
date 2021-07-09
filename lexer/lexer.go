@@ -64,6 +64,17 @@ func (l *Lexer) getNum() token.Token {
 	return token.NewToken(ln, col, token.NUMBER, v)
 }
 
+func (l *Lexer) getIdent() token.Token {
+	pos := l.pos
+	ln := l.ln
+	col := l.col
+	for !l.isAtEnd() && l.isIdent(l.c) {
+		l.consume()
+	}
+	v := string(l.input[pos:l.pos])
+	return token.NewToken(ln, col, token.GetKeywordOrIdent(v), v)
+}
+
 func (l *Lexer) NextToken() token.Token {
 	for !l.isAtEnd() {
 		if unicode.IsSpace(l.c) {
@@ -72,6 +83,9 @@ func (l *Lexer) NextToken() token.Token {
 		}
 		if unicode.IsNumber(l.c) {
 			return l.getNum()
+		}
+		if l.isIdent(l.c) {
+			return l.getIdent()
 		}
 		if tok, ok := token.IsSymbol(string(l.c)); ok {
 			c := string(l.c)
@@ -85,4 +99,8 @@ func (l *Lexer) NextToken() token.Token {
 
 func (l *Lexer) isAtEnd() bool {
 	return l.c == EOF_CHAR
+}
+
+func (l *Lexer) isIdent(c rune) bool {
+	return unicode.IsLetter(c) || c == '_'
 }
