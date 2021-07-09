@@ -12,6 +12,7 @@ const (
 	LOWEST int = iota
 	TERM
 	FACTOR
+	PREFIX
 )
 
 // precedence map
@@ -46,6 +47,7 @@ func NewParser(l *lexer.Lexer) *Parser {
 	// register PREFIX semantic code
 	p.registerPrefixFn(token.NUMBER, p.parseNumberLiteral)
 	p.registerPrefixFn(token.LPAREN, p.parseGroupedExpr)
+	p.registerPrefixFn(token.MINUS, p.parsePrefixExpr)
 	// register INFIX semantic code
 	p.registerInfixFn(token.PLUS, p.parseInfixExpr)
 	p.registerInfixFn(token.MINUS, p.parseInfixExpr)
@@ -118,6 +120,14 @@ func (p *Parser) parseGroupedExpr() ast.Expr {
 	p.expect(token.RPAREN, "expect ')' after expression.")
 
 	return exp
+}
+
+func (p *Parser) parsePrefixExpr() ast.Expr {
+	expr := &ast.Unary{Operator: p.curToken}
+	p.nextToken()
+	expr.Right = p.expression(PREFIX)
+
+	return expr
 }
 
 func (p *Parser) parseInfixExpr(left ast.Expr) ast.Expr {

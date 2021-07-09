@@ -112,7 +112,7 @@ func debugCompiler() {
 
 func debugVM() {
 	co_consts := []interface{}{}
-	input := `(1 + 2) * 3`
+	input := `2 * -3`
 	l := lexer.NewLexer(input)
 	p := parser.NewParser(l)
 	expr := p.Parse()

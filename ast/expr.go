@@ -21,7 +21,7 @@ func (expr *Literal) Accept(v ExprVisitor) interface{} {
 }
 
 type Unary struct {
-	Operator *token.Token
+	Operator token.Token
 	Right    Expr
 }
 

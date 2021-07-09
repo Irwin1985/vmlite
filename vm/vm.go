@@ -68,6 +68,9 @@ func (vm *VM) Run() error {
 				}
 				vm.push(l / r)
 			}
+		case code.UNEG:
+			v := vm.pop().(float64)
+			vm.push(-v)
 		}
 	}
 
