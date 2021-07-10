@@ -12,16 +12,18 @@ type Compiler struct {
 	co_names  []string
 	co_consts []interface{}
 	co_values []interface{}
+	map_num   map[float64]int
 	errors    []string
 }
 
-func NewCompiler(co_names []string, co_consts []interface{}) *Compiler {
+func NewCompiler(co_names []string, co_consts []interface{}, map_num map[float64]int) *Compiler {
 	c := &Compiler{
 		co_code:   []code.Opcode{},
 		co_names:  co_names,
 		co_consts: co_consts,
 		co_values: []interface{}{},
 		errors:    []string{},
+		map_num:   map_num,
 	}
 	return c
 }
@@ -122,41 +124,46 @@ func (c *Compiler) VisitBinaryExpr(expr *ast.Binary) interface{} {
 }
 
 func (c *Compiler) VisitLiteralExpr(expr *ast.Literal) interface{} {
-	switch v := expr.Value.(type) {
-	case float64:
-		// load constant and get the index
-		i := c.addConstant(v)
-		// emit the instruction
-		c.emit(code.PUSH, i)
-	case bool:
+	t := expr.Token.Type
+	switch t {
+	case token.TRUE, token.FALSE:
 		c.emit(code.BOOL)
+		v := expr.Token.Lexeme.(bool)
 		if v {
 			c.emit(code.TRUE)
 		} else {
 			c.emit(code.FALSE)
 		}
-	}
-	return nil
-}
+	case token.STRING:
+		i := c.addConstant(expr.Token.Lexeme.(string))
+		c.emit(code.PUSH, i)
 
-func (c *Compiler) VisitIdentifierExpr(expr *ast.Identifier) interface{} {
-	name := expr.Value.Lexeme.(string)
-	i := -1
-	// find the index
-	for j := 0; j < len(c.co_names); j++ {
-		if c.co_names[j] == name {
-			i = j
-			break
+	case token.IDENT:
+		name := expr.Token.Lexeme.(string)
+		i := -1
+		for j := 0; j < len(c.co_names); j++ {
+			if c.co_names[j] == name {
+				i = j
+				break
+			}
+		}
+		if i < 0 {
+			c.addError(fmt.Sprintf("Variable not defined: %s\n", name))
+			return nil
+		}
+		c.emit(code.LOAD, i)
+	case token.NUMBER:
+		v := expr.Token.Lexeme.(float64)
+		// lookup in map_num first
+		if i, ok := c.map_num[v]; ok {
+			c.emit(code.PUSH, i)
+		} else { // feed the map_num with new consts
+			i := c.addConstant(v)
+			c.map_num[v] = i
+			c.emit(code.PUSH, i) // save reference
 		}
 	}
-	if i < 0 {
-		c.addError(fmt.Sprintf("Variable not defined: %s\n", name))
-		return nil
-	}
-	// emit code
-	c.emit(code.LOAD, i)
-
-	return i
+	return nil
 }
 
 /****************************
@@ -173,21 +180,8 @@ func (c *Compiler) emit(op code.Opcode, args ...int) int {
 
 // add a constant in co_consts array
 func (c *Compiler) addConstant(cons interface{}) int {
-	// find the index (if already exists and not duplicate it which is bad for performance)
-	i := len(c.co_consts)
-	found := false
-	for j := 0; j < len(c.co_consts); j++ {
-		if c.co_consts[j] == cons {
-			i = j
-			found = true
-			break
-		}
-	}
-	// add or recycle the constant
-	if !found {
-		c.co_consts = append(c.co_consts, cons)
-	}
-
+	var i int = len(c.co_consts)
+	c.co_consts = append(c.co_consts, cons)
 	return i
 }
 

@@ -35,6 +35,7 @@ const VALUES_SIZE = 65536
 var co_consts = []interface{}{}
 var co_names = []string{}
 var co_values = make([]interface{}, VALUES_SIZE)
+var map_num = make(map[float64]int)
 
 func Start(mode string, input string) {
 	if mode == "repl" {
@@ -80,7 +81,7 @@ func run(input string) {
 		printErrors(p.Errors())
 	}
 
-	c := compiler.NewCompiler(co_names, co_consts)
+	c := compiler.NewCompiler(co_names, co_consts, map_num)
 	c.Compile(program)
 	errors := c.Errors()
 	if len(errors) > 0 {
@@ -93,13 +94,13 @@ func run(input string) {
 	co_consts = c.GetConstants()
 
 	// debug
-	//fmt.Printf("co_names[%v]\nco_consts[%v]\n", co_names, co_consts)
+	fmt.Printf("co_names[%v]\nco_consts[%v]\n", co_names, co_consts)
 	// debug
 
 	vm := vm.NewVM(co_codes, co_consts, co_names, co_values)
 	err := vm.Run()
 	if err != nil {
-		fmt.Print(err)
+		fmt.Printf("%s\n", err)
 	}
 }
 
@@ -131,7 +132,7 @@ func debugCompiler(input string) {
 		printErrors(p.Errors())
 		return
 	}
-	c := compiler.NewCompiler(co_names, co_consts)
+	c := compiler.NewCompiler(co_names, co_consts, map_num)
 	c.Compile(program)
 	errors := c.Errors()
 	if len(errors) > 0 {
@@ -155,7 +156,7 @@ func debugVM(input string) {
 		printErrors(p.Errors())
 		return
 	}
-	c := compiler.NewCompiler(co_names, co_consts)
+	c := compiler.NewCompiler(co_names, co_consts, map_num)
 	c.Compile(program)
 	errors := c.Errors()
 	if len(errors) > 0 {

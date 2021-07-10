@@ -66,11 +66,12 @@ func (l *Lexer) getNum() token.Token {
 
 func (l *Lexer) getString() token.Token {
 	s := l.c
-	pos := l.pos
 	ln := l.ln
 	col := l.col
 	l.consume() // skip start string
+	pos := l.pos
 	for {
+		l.consume()
 		if l.isAtEnd() {
 			panic(fmt.Sprintf("untermitated string at Ln: %d, Col: %d", ln, col))
 		}

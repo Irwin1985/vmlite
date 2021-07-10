@@ -6,7 +6,7 @@ type VisitorExpr interface {
 	VisitLiteralExpr(expr *Literal) interface{}
 	VisitUnaryExpr(expr *Unary) interface{}
 	VisitBinaryExpr(expr *Binary) interface{}
-	VisitIdentifierExpr(expr *Identifier) interface{}
+	// VisitIdentifierExpr(expr *Identifier) interface{}
 }
 
 type Expr interface {
@@ -14,7 +14,7 @@ type Expr interface {
 }
 
 type Literal struct {
-	Value interface{}
+	Token token.Token
 }
 
 func (expr *Literal) Accept(v VisitorExpr) interface{} {
@@ -40,10 +40,10 @@ func (expr *Binary) Accept(v VisitorExpr) interface{} {
 	return v.VisitBinaryExpr(expr)
 }
 
-type Identifier struct {
-	Value token.Token
-}
+// type Identifier struct {
+// 	Value token.Token
+// }
 
-func (expr *Identifier) Accept(v VisitorExpr) interface{} {
-	return v.VisitIdentifierExpr(expr)
-}
+// func (expr *Identifier) Accept(v VisitorExpr) interface{} {
+// 	return v.VisitIdentifierExpr(expr)
+// }

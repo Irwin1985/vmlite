@@ -50,9 +50,12 @@ func (a *AstPrinter) VisitBinaryExpr(expr *Binary) interface{} {
 }
 
 func (a *AstPrinter) VisitLiteralExpr(expr *Literal) interface{} {
-	return expr.Value
+	if v, ok := expr.Token.Lexeme.(string); ok {
+		return fmt.Sprintf("'%s'", v)
+	}
+	return expr.Token.Lexeme
 }
 
-func (a *AstPrinter) VisitIdentifierExpr(expr *Identifier) interface{} {
-	return expr.Value.Lexeme
-}
+// func (a *AstPrinter) VisitIdentifierExpr(expr *Identifier) interface{} {
+// 	return expr.Value.Lexeme
+// }

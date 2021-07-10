@@ -3,6 +3,7 @@ package vm
 import (
 	"encoding/binary"
 	"fmt"
+	"strings"
 	"vmlite/code"
 )
 
@@ -104,11 +105,33 @@ func (vm *VM) OpBinaryFn() error {
 
 	switch op {
 	case code.ADD:
-		r, l := vm.popFloat()
-		vm.push(l + r)
+		r := vm.pop()
+		l := vm.pop()
+		tr := typeOf(r)
+		tl := typeOf(l)
+		if tr == 'c' && tl == 'c' {
+			vm.push(l.(string) + r.(string))
+			return nil
+		}
+		if tr == 'n' && tl == 'n' {
+			vm.push(l.(float64) + r.(float64))
+			return nil
+		}
+		return fmt.Errorf("operands must be two numbers or two strings")
 	case code.SUB:
-		r, l := vm.popFloat()
-		vm.push(l - r)
+		r := vm.pop()
+		l := vm.pop()
+		tr := typeOf(r)
+		tl := typeOf(l)
+		if tr == 'c' && tl == 'c' {
+			vm.push(strings.TrimRight(l.(string), " ") + r.(string))
+			return nil
+		}
+		if tr == 'n' && tl == 'n' {
+			vm.push(l.(float64) - r.(float64))
+			return nil
+		}
+		return fmt.Errorf("operands must be two numbers or two strings")
 	case code.MUL:
 		r, l := vm.popFloat()
 		vm.push(l * r)
@@ -196,4 +219,19 @@ func (vm *VM) popBoolean() (bool, bool) {
 	r := vm.pop().(bool)
 	l := vm.pop().(bool)
 	return r, l
+}
+
+func typeOf(v interface{}) byte {
+	switch v.(type) {
+	case float64:
+		return 'n'
+	case string:
+		return 'c'
+	case bool:
+		return 'l'
+	case nil:
+		return 'x'
+	default:
+		return 'u'
+	}
 }

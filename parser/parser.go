@@ -63,14 +63,17 @@ func NewParser(l *lexer.Lexer) *Parser {
 		mapPrefixFn: make(map[token.TokenType]PrefixFnType),
 		mapInfixFn:  make(map[token.TokenType]InfixFnType),
 	}
+
 	// register PREFIX semantic code
-	p.registerPrefixFn(token.NUMBER, p.parseNumberLiteral)
-	p.registerPrefixFn(token.IDENT, p.parseIdentifier)
+	p.registerPrefixFn(token.NUMBER, p.parseLiteral)
+	p.registerPrefixFn(token.STRING, p.parseLiteral)
+	p.registerPrefixFn(token.IDENT, p.parseLiteral)
+	p.registerPrefixFn(token.TRUE, p.parseLiteral)
+	p.registerPrefixFn(token.FALSE, p.parseLiteral)
+
 	p.registerPrefixFn(token.LPAREN, p.parseGroupedExpr)
 	p.registerPrefixFn(token.MINUS, p.parseUnaryExpr)
 	p.registerPrefixFn(token.NOT, p.parseUnaryExpr)
-	p.registerPrefixFn(token.TRUE, p.parseBooleanExpr)
-	p.registerPrefixFn(token.FALSE, p.parseBooleanExpr)
 
 	// register INFIX semantic code
 	p.registerInfixFn(token.PLUS, p.parseInfixExpr)
@@ -176,13 +179,9 @@ func (p *Parser) expression(precedence int) ast.Expr {
 	return leftExpr
 }
 
-func (p *Parser) parseNumberLiteral() ast.Expr {
-	expr := &ast.Literal{}
-	if p.match(token.NUMBER) {
-		expr.Value = p.prevToken.Lexeme
-	} else {
-		p.newError(fmt.Sprintf("%v expect expression", p.curToken))
-	}
+func (p *Parser) parseLiteral() ast.Expr {
+	expr := &ast.Literal{Token: p.curToken}
+	p.nextToken()
 	return expr
 }
 
@@ -200,19 +199,6 @@ func (p *Parser) parseUnaryExpr() ast.Expr {
 	expr.Right = p.expression(PREFIX)
 
 	return expr
-}
-
-func (p *Parser) parseBooleanExpr() ast.Expr {
-	expr := &ast.Literal{Value: p.curToken.Type == token.TRUE}
-	p.nextToken()
-	return expr
-}
-
-func (p *Parser) parseIdentifier() ast.Expr {
-	exp := &ast.Identifier{Value: p.curToken}
-	p.nextToken()
-
-	return exp
 }
 
 func (p *Parser) parseInfixExpr(left ast.Expr) ast.Expr {
@@ -241,10 +227,6 @@ func (p *Parser) match(t token.TokenType) bool {
 		return true
 	}
 	return false
-}
-
-func (p *Parser) curTokenIs(t token.TokenType) bool {
-	return p.curToken.Type == t
 }
 
 func (p *Parser) newError(msg string) {
