@@ -4,6 +4,6 @@ import "vmlite/repl"
 
 func main() {
 	mode := "repl"
-	input := `print 12 + 15 + 12 + 15 + 10`
+	input := `print 1 + 2`
 	repl.Start(mode, input)
 }

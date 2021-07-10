@@ -20,7 +20,7 @@ func PrintByteCode(bc []code.Opcode, co_consts []interface{}) string {
 		c := bc[ip]
 		count += 1
 		switch c {
-		case code.PUSH:
+		case code.PUSHF:
 			i := binary.BigEndian.Uint32(bc[ip+1:])
 			ip += 4
 			v := co_consts[i]

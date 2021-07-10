@@ -57,11 +57,11 @@ func (l *Lexer) getNum() token.Token {
 		l.consume()
 	}
 	lex := string(l.input[pos:l.pos])
-	v, ok := strconv.ParseFloat(lex, 64)
+	v, ok := strconv.ParseFloat(lex, 32)
 	if ok != nil {
 		panic(ok)
 	}
-	return token.NewToken(ln, col, token.NUMBER, v)
+	return token.NewToken(ln, col, token.NUMBER, float32(v))
 }
 
 func (l *Lexer) getString() token.Token {

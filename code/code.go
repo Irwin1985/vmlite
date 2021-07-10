@@ -5,7 +5,11 @@ import "encoding/binary"
 type Opcode = byte
 
 const (
-	PUSH Opcode = iota
+	// push float32
+	PUSHF Opcode = iota
+	PUSHS        // push string
+	ADDS         // add string
+	SUBS         // subtract string
 	ADD
 	SUB
 	MUL
@@ -35,7 +39,10 @@ const (
 )
 
 var CodeMap = map[Opcode]string{
-	PUSH:  "PUSH",
+	PUSHF: "PUSHF",
+	PUSHS: "PUSHS",
+	ADDS:  "ADDS",
+	SUBS:  "SUBS",
 	ADD:   "ADD",
 	SUB:   "SUB",
 	MUL:   "MUL",
@@ -60,7 +67,7 @@ var CodeMap = map[Opcode]string{
 	PRINT: "PRINT",
 }
 
-func Make(op Opcode, args ...int) []byte {
+func Make(op Opcode, args ...float32) []byte {
 	// 1 = the opcode + 4 bytes for int32 * len(args)
 	// [0,  1, 2, 3, 4,   5, 6, 7, 8, 9, 10, 11, 12, ...]
 	//  ^ | ^  ^  ^  ^  | ^  ^  ^  ^ |

@@ -33,7 +33,8 @@ func NewVM(co_codes []code.Opcode, co_consts []interface{}, co_names []string, c
 		mapCode:   make(map[byte]OpCodeFn),
 	}
 	// register semantic opcode
-	vm.mapCode[code.PUSH] = vm.OpPushFn
+	vm.mapCode[code.PUSHF] = vm.OpPushFloatFn
+	vm.mapCode[code.PUSHS] = vm.OpPushStringFn
 	vm.mapCode[code.BOOL] = vm.OpBoolFn
 	vm.mapCode[code.CMP] = vm.OpBinaryFn
 	vm.mapCode[code.UNARY] = vm.OpUnaryFn
@@ -78,11 +79,18 @@ func (vm *VM) Run() error {
 	return nil
 }
 
-func (vm *VM) OpPushFn() error {
+func (vm *VM) OpPushStringFn() error {
 	i := binary.BigEndian.Uint32(vm.co_codes[vm.ip:])
 	vm.ip += 4
 	v := vm.co_consts[i]
 	vm.push(v)
+	return nil
+}
+
+func (vm *VM) OpPushFloatFn() error {
+	i := binary.BigEndian.Uint32(vm.co_codes[vm.ip:])
+	vm.ip += 4
+	vm.push(float32(i))
 	return nil
 }
 
@@ -104,34 +112,18 @@ func (vm *VM) OpBinaryFn() error {
 	vm.ip += 1 // dont forget advance the instruction pointer
 
 	switch op {
+	case code.ADDS:
+		r, l := vm.popString()
+		vm.push(l + r)
+	case code.SUBS:
+		r, l := vm.popString()
+		vm.push(strings.TrimRight(l, " ") + r)
 	case code.ADD:
-		r := vm.pop()
-		l := vm.pop()
-		tr := typeOf(r)
-		tl := typeOf(l)
-		if tr == 'c' && tl == 'c' {
-			vm.push(l.(string) + r.(string))
-			return nil
-		}
-		if tr == 'n' && tl == 'n' {
-			vm.push(l.(float64) + r.(float64))
-			return nil
-		}
-		return fmt.Errorf("operands must be two numbers or two strings")
+		r, l := vm.popFloat()
+		vm.push(l + r)
 	case code.SUB:
-		r := vm.pop()
-		l := vm.pop()
-		tr := typeOf(r)
-		tl := typeOf(l)
-		if tr == 'c' && tl == 'c' {
-			vm.push(strings.TrimRight(l.(string), " ") + r.(string))
-			return nil
-		}
-		if tr == 'n' && tl == 'n' {
-			vm.push(l.(float64) - r.(float64))
-			return nil
-		}
-		return fmt.Errorf("operands must be two numbers or two strings")
+		r, l := vm.popFloat()
+		vm.push(l - r)
 	case code.MUL:
 		r, l := vm.popFloat()
 		vm.push(l * r)
@@ -190,7 +182,7 @@ func (vm *VM) OpUnaryFn() error {
 	vm.ip += 1 // advance the ip
 
 	if op == code.UNEG {
-		v := vm.pop().(float64)
+		v := vm.pop().(float32)
 		vm.push(-v)
 	} else {
 		v := vm.pop().(bool)
@@ -209,29 +201,14 @@ func (vm *VM) OpPrintFn() error {
 }
 
 // VIRTUAL MACHINE HELPER FUNCTIONS
-func (vm *VM) popFloat() (float64, float64) {
-	r := vm.pop().(float64)
-	l := vm.pop().(float64)
-	return r, l
+func (vm *VM) popFloat() (float32, float32) {
+	return vm.pop().(float32), vm.pop().(float32)
 }
 
 func (vm *VM) popBoolean() (bool, bool) {
-	r := vm.pop().(bool)
-	l := vm.pop().(bool)
-	return r, l
+	return vm.pop().(bool), vm.pop().(bool)
 }
 
-func typeOf(v interface{}) byte {
-	switch v.(type) {
-	case float64:
-		return 'n'
-	case string:
-		return 'c'
-	case bool:
-		return 'l'
-	case nil:
-		return 'x'
-	default:
-		return 'u'
-	}
+func (vm *VM) popString() (string, string) {
+	return vm.pop().(string), vm.pop().(string)
 }
